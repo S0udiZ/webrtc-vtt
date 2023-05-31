@@ -13,9 +13,9 @@ WebRTC curently not implemented
 - [ ] Map
   - [ ] Drag and drop
     - [x] Move tokens
-    - [ ] Move map
-    - [ ] Upload
+    - [x] Upload
     - [ ] Delete
+  - [x] Move map
   - [x] Zoom
   - [ ] Fog of war
   - [ ] Dynamic lighting
