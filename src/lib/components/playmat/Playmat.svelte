@@ -150,8 +150,8 @@
 		// Place the object on the grid based on the mouse position and update the objects array
 		TokensContext.update((objects) => {
 			let index = objects.findIndex((object) => object.uuid === $localObject.uuid);
-			objects[index].x = Math.floor(x / $GridContext.scale);
-			objects[index].y = Math.floor(y / $GridContext.scale);
+			objects[index].x = Math.round(x / $GridContext.scale - objects[index].width / 2);
+			objects[index].y = Math.round(y / $GridContext.scale - objects[index].width / 2);
 			return objects;
 		});
 		makeGrid();
@@ -226,9 +226,14 @@
 		mouse.down = true;
 		const target =
 			$TokensContext.find((object) => {
-				if (object.x === x && object.y === y) {
+				// returns the object if the mouse is between or eaqual to object postition and object posisition + object.width for both x and y
+				if (object.x <= x && object.x + object.width > x && object.y <= y && object.y + object.height > y) {
 					return object;
 				}
+				// Old code that only returns the object if the mouse is on the top left corner of the object
+				// if (object.x === x && object.y === y) {
+				// 	return object;
+				// }
 				return;
 			}) || ({} as Object);
 		if (target.uuid) {

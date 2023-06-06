@@ -116,11 +116,11 @@
 				width: selectedToken.width,
 				height: selectedToken.height,
 				x:
-					Math.floor($GridContext.mouse.x / squareSize - $GridContext.shift.x / squareSize) *
-					$GridContext.scale,
+					Math.round($GridContext.mouse.x / squareSize - $GridContext.shift.x / squareSize *
+					$GridContext.scale - (selectedToken.width / 2)),
 				y:
-					Math.floor($GridContext.mouse.y / squareSize - $GridContext.shift.y / squareSize) *
-					$GridContext.scale
+					Math.round($GridContext.mouse.y / squareSize - $GridContext.shift.y / squareSize *
+					$GridContext.scale - (selectedToken.width / 2))
 			};
 			console.log(token);
 			TokensContext.update((tokens) => [...tokens, token]);
@@ -134,7 +134,10 @@
 		$GridContext.mouse.x = event.clientX;
 		$GridContext.mouse.y = event.clientY;
 
-		if ($GridContext.mouse.x <= $GridContext.grid.width && $GridContext.mouse.y <= $GridContext.grid.height) {
+		if (
+			$GridContext.mouse.x <= $GridContext.grid.width &&
+			$GridContext.mouse.y <= $GridContext.grid.height
+		) {
 			$GridContext.mouse.onGrid = true;
 		} else {
 			$GridContext.mouse.onGrid = false;
@@ -164,7 +167,29 @@
 			</figure>
 		{/each}
 	</div>
-	<div on:pointerup={handleMouseUp} on:pointermove={handleMouseCordinates} class="fixed inset-0" style="pointer-events: {selectedToken?.id ? "auto" : "none"};" />
+	<div
+		on:pointerup={handleMouseUp}
+		on:pointermove={handleMouseCordinates}
+		class="fixed inset-0 grid"
+		style="pointer-events: {selectedToken?.id ? 'auto' : 'none'};
+		grid-template-columns: repeat(auto-fill, {squareSize}px);"
+	>
+		{#if selectedToken?.id}
+			<figure
+				class="aspect-square pointer-events-none"
+				style="transform: translate({$GridContext.mouse.x -
+					(selectedToken.width * squareSize) / 2}px, {$GridContext.mouse.y -
+					(selectedToken.width * squareSize) / 2}px); 
+			 	grid-column: span {selectedToken.width} / span {selectedToken.width};"
+			>
+				<img class="w-full" src={selectedToken.image} alt={selectedToken.id} />
+				<div
+					class="absolute inset-0 border-8 rounded-full pointer-events-none"
+					style="border-color: {selectedToken.ringColor}"
+				/>
+			</figure>
+		{/if}
+	</div>
 </div>
 <dialog bind:this={createTokenDialog}>
 	<form on:submit|preventDefault={handleTokenUpload}>
