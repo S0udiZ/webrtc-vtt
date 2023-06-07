@@ -6,7 +6,6 @@
 	import type { Writable } from 'svelte/store';
 	import type { ToastSettings } from '@skeletonlabs/skeleton';
 
-	import { dndzone } from 'svelte-dnd-action';
 	import type { Token } from '$lib/types/Tokens';
 	import { GridContext } from '$lib/context/GridContext';
 
@@ -115,19 +114,22 @@
 				ringColor: selectedToken.ringColor,
 				width: selectedToken.width,
 				height: selectedToken.height,
-				x:
-					Math.round($GridContext.mouse.x / squareSize - $GridContext.shift.x / squareSize *
-					$GridContext.scale - (selectedToken.width / 2)),
-				y:
-					Math.round($GridContext.mouse.y / squareSize - $GridContext.shift.y / squareSize *
-					$GridContext.scale - (selectedToken.width / 2))
+				x: Math.round(
+					$GridContext.mouse.x / squareSize -
+						($GridContext.shift.x / squareSize) * $GridContext.scale -
+						selectedToken.width / 2
+				),
+				y: Math.round(
+					$GridContext.mouse.y / squareSize -
+						($GridContext.shift.y / squareSize) * $GridContext.scale -
+						selectedToken.width / 2
+				)
 			};
 			console.log(token);
 			TokensContext.update((tokens) => [...tokens, token]);
 		}
 
 		selectedToken = {} as TokenLibraryToken;
-		console.log(selectedToken);
 	}
 
 	function handleMouseCordinates(event: MouseEvent) {
@@ -180,7 +182,7 @@
 				style="transform: translate({$GridContext.mouse.x -
 					(selectedToken.width * squareSize) / 2}px, {$GridContext.mouse.y -
 					(selectedToken.width * squareSize) / 2}px); 
-			 	grid-column: span {selectedToken.width} / span {selectedToken.width};"
+					grid-column: span {selectedToken.width} / span {selectedToken.width};"
 			>
 				<img class="w-full" src={selectedToken.image} alt={selectedToken.id} />
 				<div

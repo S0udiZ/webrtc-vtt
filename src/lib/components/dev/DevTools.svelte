@@ -20,5 +20,7 @@
     <p class="truncate">uuid: {object.uuid}</p>
     <p>x: {object.x}</p>
     <p>y: {object.y}</p>
+    <p>width: {object.width}</p>
+    <p>height: {object.height}</p>
     {/each}
 </div>

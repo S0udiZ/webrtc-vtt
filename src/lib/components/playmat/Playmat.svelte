@@ -12,6 +12,9 @@
 
 	let localGrid: HTMLCanvasElement;
 
+	const uuidRegex: RegExp =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89aAbB][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 	$: console.log($TokensContext);
 
 	// Types
@@ -133,7 +136,7 @@
 			y += squareSize;
 		}
 
-		if ($localObject.uuid) {
+		if (uuidRegex.test(mouse.target) && mouse.down) {
 			// Draw a rectangle with the size of the selected object on the local grid based on the mouse position
 			ctx.beginPath();
 			ctx.rect(
@@ -151,7 +154,7 @@
 		TokensContext.update((objects) => {
 			let index = objects.findIndex((object) => object.uuid === $localObject.uuid);
 			objects[index].x = Math.round(x / $GridContext.scale - objects[index].width / 2);
-			objects[index].y = Math.round(y / $GridContext.scale - objects[index].width / 2);
+			objects[index].y = Math.round(y / $GridContext.scale - objects[index].height / 2);
 			return objects;
 		});
 		makeGrid();
@@ -181,7 +184,7 @@
 			return GridContext;
 		});
 
-		if (mouse.down && $localObject.uuid) {
+		if (mouse.down && uuidRegex.test(mouse.target)) {
 			makeLocalGrid();
 		} else if (mouse.down && mouse.target === 'grid') {
 			// Set the shift of the grid based on the mouse movement
@@ -223,11 +226,15 @@
 		let x = Math.floor(mouse.x / squareSize - shift.x / squareSize);
 		let y = Math.floor(mouse.y / squareSize - shift.y / squareSize);
 
-		mouse.down = true;
 		const target =
 			$TokensContext.find((object) => {
 				// returns the object if the mouse is between or eaqual to object postition and object posisition + object.width for both x and y
-				if (object.x <= x && object.x + object.width > x && object.y <= y && object.y + object.height > y) {
+				if (
+					object.x <= x &&
+					object.x + object.width > x &&
+					object.y <= y &&
+					object.y + object.height > y
+				) {
 					return object;
 				}
 				// Old code that only returns the object if the mouse is on the top left corner of the object
@@ -242,31 +249,38 @@
 		} else {
 			mouse.target = 'grid';
 		}
+		setTimeout(() => {
+			mouse.down = true;
+		}, 100);
 	}
 
 	function releseTarget(event: MouseEvent) {
 		let x = Math.floor(mouse.x / squareSize - shift.x / squareSize) * $GridContext.scale;
 		let y = Math.floor(mouse.y / squareSize - shift.y / squareSize) * $GridContext.scale;
 
-		mouse.down = false;
-		if ($localObject.uuid) {
-			placeObject(x, y);
-			DevContext.update((DevContext) => {
-				DevContext.objects.find((object) => {
-					if (object.uuid === $localObject.uuid) {
-						object.x = Math.floor(x / $GridContext.scale);
-						object.y = Math.floor(y / $GridContext.scale);
-						return object;
-					} else return object;
+		if (mouse.down) {
+			if (uuidRegex.test(mouse.target)) {
+				placeObject(x, y);
+				DevContext.update((DevContext) => {
+					DevContext.objects.find((object) => {
+						if (object.uuid === $localObject.uuid) {
+							object.x = Math.floor(x / $GridContext.scale);
+							object.y = Math.floor(y / $GridContext.scale);
+							return object;
+						} else return object;
+					});
+					return DevContext;
 				});
-				return DevContext;
-			});
-			mouse.target = '';
-			localObject.set({} as Object);
-		} else {
-			mouse.target = '';
+				mouse.target = '';
+				localObject.set({} as Object);
+			} else {
+				mouse.target = '';
+			}
+			makeLocalGrid();
 		}
-		makeLocalGrid();
+		setTimeout(() => {
+			mouse.down = false;
+		}, 100);
 	}
 
 	function handleClick(event: MouseEvent) {
@@ -274,13 +288,15 @@
 		let x = Math.floor(mouse.x / squareSize);
 		let y = Math.floor(mouse.y / squareSize);
 
-		mouse.click = `${x + Math.floor((shift.x * -1) / (squareSize * $GridContext.scale))}, ${
-			y + Math.floor((shift.y * -1) / (squareSize * $GridContext.scale))
-		}`;
-		DevContext.update((DevContext) => {
-			DevContext.mouse = mouse;
-			return DevContext;
-		});
+		if (mouse.down === false) {
+			mouse.click = `${x + Math.floor((shift.x * -1) / (squareSize * $GridContext.scale))}, ${
+				y + Math.floor((shift.y * -1) / (squareSize * $GridContext.scale))
+			}`;
+			DevContext.update((DevContext) => {
+				DevContext.mouse = mouse;
+				return DevContext;
+			});
+		}
 	}
 
 	function handleMouseWheel(event: WheelEvent) {
@@ -296,6 +312,7 @@
 
 		setTimeout(() => {
 			makeGrid();
+			makeLocalGrid();
 		}, 0);
 	}
 
@@ -308,7 +325,7 @@
 			DevContext.objects = $TokensContext;
 			return DevContext;
 		});
-		makeGrid();
+		UpdateGrid($TokensContext);
 	});
 </script>
 
