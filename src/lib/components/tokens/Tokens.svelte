@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { TokensContext } from '$lib/context/TokensContext';
 	import { DevContext } from '$lib/context/dev/DevContext';
-	import { localStorageStore, toastStore } from '@skeletonlabs/skeleton';
+	import { localStorageStore, popup, toastStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import type { Writable } from 'svelte/store';
-	import type { ToastSettings } from '@skeletonlabs/skeleton';
+	import type { PopupSettings, ToastSettings } from '@skeletonlabs/skeleton';
 
 	import type { Token } from '$lib/types/Tokens';
 	import { GridContext } from '$lib/context/GridContext';
+	import { ContextMenuToken } from '$lib/context/ContextMenuToken';
 
 	type TokenLibraryToken = {
 		id: string;
@@ -43,6 +44,12 @@
 	let size = { w: 1, h: 1 };
 
 	let selectedToken: TokenLibraryToken;
+
+	let popupSettings: PopupSettings = {
+		event: 'click',
+		target: 'TokenMenu',
+		placement: 'right'
+	}
 
 	function handleUploadButton() {
 		createTokenDialog.showModal();
@@ -97,12 +104,17 @@
 	}
 
 	function handleMouseDown(event: MouseEvent) {
-		if (event.target instanceof HTMLImageElement) {
+		ContextMenuToken.set({
+			x: event.clientX,
+			y: event.clientY,
+			token: null,
+			flipped: false
+		})
+		if (event.target instanceof HTMLImageElement && event.button === 0) {
 			selectedToken = JSON.parse($TokenLibrary).find(
 				// @ts-ignore - event target is an image element and not null
 				(token: TokenLibraryToken) => token.id === event.target.alt
 			);
-			console.table(selectedToken);
 		}
 	}
 
@@ -125,7 +137,6 @@
 						selectedToken.width / 2
 				)
 			};
-			console.log(token);
 			TokensContext.update((tokens) => [...tokens, token]);
 		}
 
@@ -146,6 +157,23 @@
 		}
 	}
 
+function handleContextMenu(event: MouseEvent, token: Token) {
+		let x = event.clientX;
+		let y = event.clientY;
+		let flipped = false;
+
+		if (x + 200 > window.innerWidth) {
+			flipped = true;
+		}
+
+		ContextMenuToken.set({
+			x,
+			y,
+			token,
+			flipped
+		});
+	}
+
 	onMount(() => {
 		if (!$TokenLibrary) {
 			TokenLibrary.set('[]');
@@ -160,6 +188,7 @@
 			<figure
 				class="relative mx-auto aspect-square"
 				style="grid-column: span {token.width} / span {token.width}; grid-row: span {token.height} / span {token.heigth}"
+				on:contextmenu|preventDefault={(event) => {handleContextMenu(event, token)}}
 			>
 				<img class="w-full" src={token.image} alt={token.id} />
 				<div

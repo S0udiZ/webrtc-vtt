@@ -6,8 +6,12 @@
 	// Most of your app wide CSS should be put in this file
 	import '../app.postcss';
 	import { Toast } from '@skeletonlabs/skeleton';
+	import ContextMenu from '$lib/components/contextMenu/ContextMenu.svelte';
+
+	let user = "DM"
 </script>
 
 <slot />
 
+<ContextMenu {user} />
 <Toast />

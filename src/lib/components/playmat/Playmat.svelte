@@ -6,16 +6,14 @@
 	import { GridContext } from '$lib/context/GridContext';
 	import { TokensContext } from '$lib/context/TokensContext';
 	import type { Token } from '$lib/types/Tokens';
+	import { ContextMenuToken } from '$lib/context/ContextMenuToken';
 
 	// Elements
 	let grid: HTMLCanvasElement;
 
 	let localGrid: HTMLCanvasElement;
 
-	const uuidRegex: RegExp =
-		/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89aAbB][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-	$: console.log($TokensContext);
+	const uuidRegex: RegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89aAbB][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 	// Types
 	type Object = {
@@ -165,7 +163,6 @@
 			makeGrid();
 			makeLocalGrid();
 		}
-		console.log(x);
 	}
 
 	$: UpdateGrid($TokensContext);
@@ -243,12 +240,17 @@
 				// }
 				return;
 			}) || ({} as Object);
-		if (target.uuid) {
+		if (target.uuid && event.button === 0) {
 			mouse.target = target.uuid;
 			localObject.set(target);
 		} else {
-			mouse.target = 'grid';
-		}
+			mouse.target = 'grid'
+		};
+		ContextMenuToken.set({
+			x: mouse.x,
+			y: mouse.y,
+			token: null,
+		})
 		setTimeout(() => {
 			mouse.down = true;
 		}, 100);
@@ -281,6 +283,48 @@
 		setTimeout(() => {
 			mouse.down = false;
 		}, 100);
+	}
+
+	function rightClick(event: MouseEvent) {
+		let x = Math.floor(mouse.x / squareSize - shift.x / squareSize);
+		let y = Math.floor(mouse.y / squareSize - shift.y / squareSize);
+
+		const target =
+			$TokensContext.find((object) => {
+				// returns the object if the mouse is between or eaqual to object postition and object posisition + object.width for both x and y
+				if (
+					object.x <= x &&
+					object.x + object.width > x &&
+					object.y <= y &&
+					object.y + object.height > y
+				) {
+					return object;
+				}
+				// Old code that only returns the object if the mouse is on the top left corner of the object
+				// if (object.x === x && object.y === y) {
+				// 	return object;
+				// }
+				return;
+			}) || ({} as Object);
+		if (target.uuid) {
+			let flipped = false;
+			if (mouse.x > window.innerWidth - 200) {
+				flipped = true;
+			}
+			ContextMenuToken.set({
+				x: mouse.x,
+				y: mouse.y,
+				token: target as Token,
+				flipped: flipped,
+			})
+		} else {
+			ContextMenuToken.set({
+				x: mouse.x,
+				y: mouse.y,
+				token: null,
+				flipped: false,
+			})
+		}
 	}
 
 	function handleClick(event: MouseEvent) {
@@ -335,6 +379,7 @@
 		bind:this={grid}
 		on:pointermove={setMouseCordinates}
 		on:pointerdown={selectTarget}
+		on:contextmenu|preventDefault={rightClick}
 		on:pointerup={releseTarget}
 		on:click={handleClick}
 		on:mousewheel={handleMouseWheel}
