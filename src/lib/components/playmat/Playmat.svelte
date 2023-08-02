@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { localStorageStore } from '@skeletonlabs/skeleton';
+	import { onDestroy, onMount } from 'svelte';
 	import { DevContext } from '$lib/context/dev/DevContext';
-	import { writable } from 'svelte/store';
+	import { writable, type Writable } from 'svelte/store';
 
 	import { GridContext } from '$lib/context/GridContext';
 	import { TokensContext } from '$lib/context/TokensContext';
 	import type { Token } from '$lib/types/Tokens';
 	import { ContextMenuToken } from '$lib/context/ContextMenuToken';
+	import Tokens from '../tokens/Tokens.svelte';
 
 	// Elements
 	let grid: HTMLCanvasElement;
@@ -14,6 +16,8 @@
 	let localGrid: HTMLCanvasElement;
 
 	const uuidRegex: RegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89aAbB][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+	const MapTokens: Writable<string> = localStorageStore('game-1', '[]');
 
 	// Types
 	type Object = {
@@ -65,7 +69,9 @@
 
 		let layers: HTMLImageElement[] = [];
 
-		$TokensContext.forEach((object) => {
+		const Tokens = JSON.parse(JSON.stringify($TokensContext)).reverse() as Token[];
+
+		Tokens.forEach((object) => {
 			let layer = new Image() as HTMLImageElement;
 			layer.src = object.image;
 			layer.alt = object.uuid;
@@ -76,26 +82,26 @@
 			layer.onload = () => {
 				const strokeWidth = 10 * $GridContext.scale;
 
-				ctx.strokeStyle = $TokensContext[index].ringColor;
+				ctx.strokeStyle = Tokens[index].ringColor;
 				ctx.lineWidth = strokeWidth;
 
 				ctx.drawImage(
 					layer,
-					$TokensContext[index].x * squareSize + shift.x,
-					$TokensContext[index].y * squareSize + shift.y,
-					$TokensContext[index].width * squareSize,
-					$TokensContext[index].height * squareSize
+					Tokens[index].x * squareSize + shift.x,
+					Tokens[index].y * squareSize + shift.y,
+					Tokens[index].width * squareSize,
+					Tokens[index].height * squareSize
 				);
 				ctx.beginPath();
 				// draw a circle around the image
 				ctx.arc(
-					$TokensContext[index].x * squareSize +
-						($TokensContext[index].width * squareSize) / 2 +
+					Tokens[index].x * squareSize +
+						(Tokens[index].width * squareSize) / 2 +
 						shift.x,
-					$TokensContext[index].y * squareSize +
-						($TokensContext[index].height * squareSize) / 2 +
+					Tokens[index].y * squareSize +
+						(Tokens[index].height * squareSize) / 2 +
 						shift.y,
-					($TokensContext[index].width * squareSize) / 2 - strokeWidth / 2 + 1,
+					(Tokens[index].width * squareSize) / 2 - strokeWidth / 2 + 1,
 					0,
 					2 * Math.PI
 				);
@@ -250,6 +256,7 @@
 			x: mouse.x,
 			y: mouse.y,
 			token: null,
+			flipped: false,
 		})
 		setTimeout(() => {
 			mouse.down = true;
@@ -364,16 +371,18 @@
 		releseTarget(event);
 	}
 
+	let mounted = false;
 	onMount(() => {
-		DevContext.update((DevContext) => {
-			DevContext.objects = $TokensContext;
-			return DevContext;
-		});
+		mounted = true;
+		TokensContext.set(JSON.parse($MapTokens));
 		UpdateGrid($TokensContext);
 	});
+
+	$: if (mounted) MapTokens.set(JSON.stringify($TokensContext));
 </script>
 
 <div class="relative overflow-hidden h-screen">
+	<!-- I have no idea why mousewheel have an error, it just works -->
 	<canvas
 		class="w-full h-full"
 		bind:this={grid}

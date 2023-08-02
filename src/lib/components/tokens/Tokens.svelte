@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { TokensContext } from '$lib/context/TokensContext';
-	import { DevContext } from '$lib/context/dev/DevContext';
 	import { localStorageStore, popup, toastStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import type { Writable } from 'svelte/store';
@@ -25,19 +24,7 @@
 
 	const TokenLibrary: Writable<string> = localStorageStore('TokenLibrary', '[]');
 
-	const ringColorOptions: Record<string, string> = {
-		red: 'red',
-		blue: 'blue',
-		green: 'green',
-		yellow: 'yellow',
-		purple: 'purple',
-		pink: 'pink',
-		indigo: 'indigo',
-		gray: 'gray',
-		black: 'black',
-		white: 'white',
-		none: 'transparent'
-	};
+	let transparent: boolean = false;
 
 	let selectedRingColor: string;
 	let imageValue: string;
@@ -79,7 +66,7 @@
 		const token: TokenLibraryToken = {
 			id: crypto.randomUUID().toString(),
 			image: imageValue,
-			ringColor: ringColorOptions[selectedRingColor],
+			ringColor: transparent ? 'transparent' : selectedRingColor,
 			width: size.w,
 			height: size.h
 		};
@@ -183,11 +170,10 @@ function handleContextMenu(event: MouseEvent, token: Token) {
 
 <div>
 	<button class="btn variant-filled-primary" on:click={handleUploadButton}>Upload</button>
-	<div class="grid grid-cols-3 p-2 w-full h-full" on:pointerdown={handleMouseDown}>
+	<div class="grid grid-cols-3 p-2 w-full h-full overflow-scroll" on:pointerdown={handleMouseDown}>
 		{#each JSON.parse($TokenLibrary) as token}
 			<figure
-				class="relative mx-auto aspect-square"
-				style="grid-column: span {token.width} / span {token.width}; grid-row: span {token.height} / span {token.heigth}"
+				class="relative mx-auto aspect-square col-span-1"
 				on:contextmenu|preventDefault={(event) => {handleContextMenu(event, token)}}
 			>
 				<img class="w-full" src={token.image} alt={token.id} />
@@ -232,12 +218,7 @@ function handleContextMenu(event: MouseEvent, token: Token) {
 			required
 			bind:value={imageValue}
 		/>
-		<select bind:value={selectedRingColor}>
-			<option value="undefined" selected>select ring color</option>
-			{#each Object.keys(ringColorOptions) as color}
-				<option value={color}>{color}</option>
-			{/each}
-		</select>
+		<label><input type="color" bind:value={selectedRingColor} /><input type="checkbox" bind:checked={transparent}>: Transparent</label>
 		<label>
 			width
 			<input type="number" bind:value={size.w} />

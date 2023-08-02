@@ -15,12 +15,4 @@
     <h2 class="h2">Shift</h2>
     <p>x: {$DevContext.shift.x}</p>
     <p>y: {$DevContext.shift.y}</p>
-    <h2 class="h2">Objects</h2>
-    {#each $DevContext.objects as object}
-    <p class="truncate">uuid: {object.uuid}</p>
-    <p>x: {object.x}</p>
-    <p>y: {object.y}</p>
-    <p>width: {object.width}</p>
-    <p>height: {object.height}</p>
-    {/each}
 </div>
