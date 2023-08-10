@@ -5,11 +5,14 @@
 	import Tokens from '$lib/components/tokens/Tokens.svelte';
 	import { AppShell, Tab, TabGroup } from '@skeletonlabs/skeleton';
 
+    import { getContext } from 'svelte';
+
 	let tabSet: number = 0;
+    let user: string = getContext('player');
 </script>
 
 <AppShell>
-	<Playmat />
+	<Playmat {user} />
 	<svelte:fragment slot="sidebarRight">
 		<div class="relative h-full">
             <TabGroup class="w-80 border-l border-primary-700 h-full">

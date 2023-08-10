@@ -10,12 +10,15 @@
 	import { ContextMenuToken } from '$lib/context/ContextMenuToken';
 	import Tokens from '../tokens/Tokens.svelte';
 
+	export let user: string;
+
 	// Elements
 	let grid: HTMLCanvasElement;
 
 	let localGrid: HTMLCanvasElement;
 
-	const uuidRegex: RegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89aAbB][0-9a-f]{3}-[0-9a-f]{12}$/i;
+	const uuidRegex: RegExp =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89aAbB][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 	const MapTokens: Writable<string> = localStorageStore('game-1', '[]');
 
@@ -79,6 +82,7 @@
 		});
 
 		layers.forEach((layer, index) => {
+			if (user === 'GM' || Tokens[index].visible) {;
 			layer.onload = () => {
 				const strokeWidth = 10 * $GridContext.scale;
 
@@ -95,12 +99,8 @@
 				ctx.beginPath();
 				// draw a circle around the image
 				ctx.arc(
-					Tokens[index].x * squareSize +
-						(Tokens[index].width * squareSize) / 2 +
-						shift.x,
-					Tokens[index].y * squareSize +
-						(Tokens[index].height * squareSize) / 2 +
-						shift.y,
+					Tokens[index].x * squareSize + (Tokens[index].width * squareSize) / 2 + shift.x,
+					Tokens[index].y * squareSize + (Tokens[index].height * squareSize) / 2 + shift.y,
 					(Tokens[index].width * squareSize) / 2 - strokeWidth / 2 + 1,
 					0,
 					2 * Math.PI
@@ -109,7 +109,7 @@
 				ctx.closePath();
 			};
 			makeLocalGrid();
-		});
+		}});
 	}
 
 	function makeLocalGrid() {
@@ -232,14 +232,16 @@
 		const target =
 			$TokensContext.find((object) => {
 				// returns the object if the mouse is between or eaqual to object postition and object posisition + object.width for both x and y
-				if (
-					object.x <= x &&
-					object.x + object.width > x &&
-					object.y <= y &&
-					object.y + object.height > y &&
-					!object.locked
-				) {
-					return object;
+				if (user === 'GM' || object.visible) {
+					if (
+						object.x <= x &&
+						object.x + object.width > x &&
+						object.y <= y &&
+						object.y + object.height > y &&
+						!object.locked
+					) {
+						return object;
+					}
 				}
 				// Old code that only returns the object if the mouse is on the top left corner of the object
 				// if (object.x === x && object.y === y) {
@@ -251,14 +253,14 @@
 			mouse.target = target.uuid;
 			localObject.set(target);
 		} else {
-			mouse.target = 'grid'
-		};
+			mouse.target = 'grid';
+		}
 		ContextMenuToken.set({
 			x: mouse.x,
 			y: mouse.y,
 			token: null,
-			flipped: false,
-		})
+			flipped: false
+		});
 		setTimeout(() => {
 			mouse.down = true;
 		}, 100);
@@ -306,7 +308,8 @@
 					object.y <= y &&
 					object.y + object.height > y
 				) {
-					return object;
+					if (user === 'GM') return object;
+					else if (object.visible === true) return object;
 				}
 				// Old code that only returns the object if the mouse is on the top left corner of the object
 				// if (object.x === x && object.y === y) {
@@ -323,15 +326,15 @@
 				x: mouse.x,
 				y: mouse.y,
 				token: target as Token,
-				flipped: flipped,
-			})
+				flipped: flipped
+			});
 		} else {
 			ContextMenuToken.set({
 				x: mouse.x,
 				y: mouse.y,
 				token: null,
-				flipped: false,
-			})
+				flipped: false
+			});
 		}
 	}
 

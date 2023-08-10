@@ -9,4 +9,5 @@ export type Token = {
     image: string;
     ringColor: string;
     locked?: boolean;
+    visible?: boolean;
 };

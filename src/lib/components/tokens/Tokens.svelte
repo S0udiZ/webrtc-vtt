@@ -35,6 +35,8 @@
 
 	let selectedToken: TokenLibraryToken;
 
+	let visible: boolean = true;
+
 	let popupSettings: PopupSettings = {
 		event: 'click',
 		target: 'TokenMenu',
@@ -117,7 +119,7 @@
 						selectedToken.width / 2
 				)
 			};
-			TokensContext.update((tokens) => [...tokens, token]);
+			TokensContext.update((tokens) => [...tokens, {...token, visible}]);
 		}
 
 		selectedToken = {} as TokenLibraryToken;
@@ -163,6 +165,13 @@ function handleContextMenu(event: MouseEvent, token: Token) {
 
 <div>
 	<button class="btn variant-filled-primary" on:click={handleUploadButton}>Upload</button>
+	<button on:click={() => visible = !visible} class="btn variant-filled-secondary w-28">
+		{#if visible }
+			👁‍🗨 Visible
+		{:else}
+			👁️ GM only
+		{/if}
+	</button>
 	<div class="grid grid-cols-3 p-2 w-full h-full overflow-scroll" on:pointerdown={handleMouseDown}>
 		{#each JSON.parse($TokenLibrary) as token}
 			<figure

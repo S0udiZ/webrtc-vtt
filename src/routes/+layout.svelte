@@ -8,7 +8,10 @@
 	import { Toast } from '@skeletonlabs/skeleton';
 	import ContextMenu from '$lib/components/contextMenu/ContextMenu.svelte';
 
-	let user = "DM"
+	import { setContext } from 'svelte';
+
+	let user: string = 'GM';
+	setContext('player', user);
 </script>
 
 <slot />

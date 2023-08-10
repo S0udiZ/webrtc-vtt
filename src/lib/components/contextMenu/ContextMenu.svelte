@@ -88,9 +88,19 @@
 		// @ts-expect-error
 		$ContextMenuToken.token.locked = !$ContextMenuToken.token?.locked;
 	}
+
+	function handleVisibleToggle() {
+		TokensContext.update((tokens) => {
+			const index = tokens.findIndex((token) => token.uuid === $ContextMenuToken.token?.uuid);
+			tokens[index].visible = tokens[index].visible;
+			return tokens;
+		});
+		// @ts-expect-error
+		$ContextMenuToken.token.visible = !$ContextMenuToken.token?.visible;
+	}
 </script>
 
-{#if $ContextMenuToken.token && user === 'DM'}
+{#if $ContextMenuToken.token && user === 'GM'}
 	<div
 		class="fixed card border border-secondary-500 z-[9999]"
 		style="
@@ -107,11 +117,13 @@
 				{:else}
 					<button on:click={handleTokenLock}>🔓</button>
 				{/if}
-				<!-- {#if $ContextMenuToken.token?.visible}
-					<button>👁️</button>
-				{:else}
-					<button>👁️‍🗨️</button>
-				{/if} -->
+				<button on:click={handleVisibleToggle}>
+					{#if $ContextMenuToken.token?.visible}
+						👁️‍🗨️
+					{:else}
+						👁️
+					{/if}
+				</button>
 				<button on:click={handleDelete}>🗑️</button><button on:click={handleLayerUp}
 					>⬆️{layer}</button
 				><button on:click={handleLayerDown}>⬇️{length}</button>
