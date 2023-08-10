@@ -236,7 +236,8 @@
 					object.x <= x &&
 					object.x + object.width > x &&
 					object.y <= y &&
-					object.y + object.height > y
+					object.y + object.height > y &&
+					!object.locked
 				) {
 					return object;
 				}

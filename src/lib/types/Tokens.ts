@@ -1,3 +1,5 @@
+import type { RgbaColor } from "svelte-awesome-color-picker";
+
 export type Token = {
     uuid: string;
     x: number;
@@ -6,4 +8,5 @@ export type Token = {
     height: number;
     image: string;
     ringColor: string;
+    locked?: boolean;
 };

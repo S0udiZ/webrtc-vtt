@@ -8,6 +8,8 @@
 	import type { Token } from '$lib/types/Tokens';
 	import { GridContext } from '$lib/context/GridContext';
 	import { ContextMenuToken } from '$lib/context/ContextMenuToken';
+	import type { RgbaColor } from 'svelte-awesome-color-picker';
+	import ColorPicker, { ChromeVariant } from 'svelte-awesome-color-picker';
 
 	type TokenLibraryToken = {
 		id: string;
@@ -15,6 +17,7 @@
 		ringColor: string;
 		width: number;
 		height: number;
+		locked: boolean;
 	};
 
 	let squareSize: number;
@@ -53,22 +56,13 @@
 			return;
 		}
 
-		if (selectedRingColor === 'undefined') {
-			const t: ToastSettings = {
-				message: 'Please select a ring color',
-				timeout: 5000,
-				background: 'variant-filled-error'
-			};
-			toastStore.trigger(t);
-			return;
-		}
-
 		const token: TokenLibraryToken = {
 			id: crypto.randomUUID().toString(),
 			image: imageValue,
-			ringColor: transparent ? 'transparent' : selectedRingColor,
+			ringColor: selectedRingColor,
 			width: size.w,
-			height: size.h
+			height: size.h,
+			locked: false
 		};
 
 		try {
@@ -77,7 +71,6 @@
 				return JSON.stringify(newTokens);
 			});
 			createTokenDialog.close();
-			selectedRingColor = 'undefined';
 			imageValue = '';
 			size = { w: 1, h: 1 };
 		} catch (error) {
@@ -218,7 +211,7 @@ function handleContextMenu(event: MouseEvent, token: Token) {
 			required
 			bind:value={imageValue}
 		/>
-		<label><input type="color" bind:value={selectedRingColor} /><input type="checkbox" bind:checked={transparent}>: Transparent</label>
+		<ColorPicker bind:hex={selectedRingColor} isPopup={false} isOpen={true} canChangeMode={false} />
 		<label>
 			width
 			<input type="number" bind:value={size.w} />

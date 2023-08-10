@@ -3,6 +3,7 @@
 	import { TokensContext } from '$lib/context/TokensContext';
 	import { ContextMenuToken } from '$lib/context/ContextMenuToken';
 	import { GridContext } from '$lib/context/GridContext';
+	import ColorPicker from 'svelte-awesome-color-picker';
 	export let user: string;
 
 	let squareSize: number;
@@ -16,7 +17,7 @@
 
 	let layer: number;
 	let length: number;
-    let transparent: boolean;
+	let transparent: boolean;
 	$: handleTokenUpdate($ContextMenuToken.token as Token);
 
 	function handleDimensions(width: number, height: number) {
@@ -35,42 +36,33 @@
 		}
 		layer = $TokensContext.findIndex((t) => t.uuid === token.uuid);
 		length = $TokensContext.length - 1;
-        if (token.ringColor === 'transparent') {
-            transparent = true;
-        } else {
-            transparent = false;
-        }
 	}
 
 	function handleLayerDown() {
-        // Update the token to be 1 layer down
-        if (layer == length) return;
+		// Update the token to be 1 layer down
+		if (layer == length) return;
 		TokensContext.update((tokens) => {
-            let temp = tokens[layer];
-            tokens[layer] = tokens[layer + 1];
-            tokens[layer + 1] = temp;
+			let temp = tokens[layer];
+			tokens[layer] = tokens[layer + 1];
+			tokens[layer + 1] = temp;
 			return tokens;
 		});
 		layer = $TokensContext.findIndex((t) => t.uuid === $ContextMenuToken.token?.uuid);
 	}
 
 	function handleLayerUp() {
-        // Update the token to be 1 layer up
-        if (layer == 0) return;
-        TokensContext.update((tokens) => {
-            let temp = tokens[layer];
-            tokens[layer] = tokens[layer - 1];
-            tokens[layer - 1] = temp;
-            return tokens;
-        });
+		// Update the token to be 1 layer up
+		if (layer == 0) return;
+		TokensContext.update((tokens) => {
+			let temp = tokens[layer];
+			tokens[layer] = tokens[layer - 1];
+			tokens[layer - 1] = temp;
+			return tokens;
+		});
 		layer = $TokensContext.findIndex((t) => t.uuid === $ContextMenuToken.token?.uuid);
 	}
 
 	function handleTokenChange() {
-        if (transparent) {
-            // Can't be null since you run this with a token selected
-            $ContextMenuToken.token.ringColor = 'transparent';
-        }
 		TokensContext.update((tokens) => {
 			const index = tokens.findIndex((token) => token.uuid === $ContextMenuToken.token?.uuid);
 			tokens[index] = $ContextMenuToken.token as Token;
@@ -86,6 +78,16 @@
 			return tokens;
 		});
 	}
+
+	function handleTokenLock() {
+		TokensContext.update((tokens) => {
+			const index = tokens.findIndex((token) => token.uuid === $ContextMenuToken.token?.uuid);
+			tokens[index].locked = tokens[index].locked;
+			return tokens;
+		});
+		// @ts-expect-error
+		$ContextMenuToken.token.locked = !$ContextMenuToken.token?.locked;
+	}
 </script>
 
 {#if $ContextMenuToken.token && user === 'DM'}
@@ -99,11 +101,21 @@
 	>
 		<div class="flex justify-between">
 			{user}
-			<span
-				><button on:click={handleDelete}>🗑️</button><button on:click={handleLayerUp}
+			<span>
+				{#if $ContextMenuToken.token?.locked}
+					<button on:click={handleTokenLock}>🔒</button>
+				{:else}
+					<button on:click={handleTokenLock}>🔓</button>
+				{/if}
+				<!-- {#if $ContextMenuToken.token?.visible}
+					<button>👁️</button>
+				{:else}
+					<button>👁️‍🗨️</button>
+				{/if} -->
+				<button on:click={handleDelete}>🗑️</button><button on:click={handleLayerUp}
 					>⬆️{layer}</button
-				><button on:click={handleLayerDown}>⬇️{length}</button></span
-			>
+				><button on:click={handleLayerDown}>⬇️{length}</button>
+			</span>
 		</div>
 		<form class="flex flex-col gap-1 p-4" on:change={handleTokenChange}>
 			<label
@@ -121,7 +133,7 @@
 				/> <input type="checkbox" bind:checked={square} /> :Square</label
 			>
 			<label><input type="text" bind:value={$ContextMenuToken.token.image} /></label>
-			<label><input type="color" bind:value={$ContextMenuToken.token.ringColor} /> <input type="checkbox" bind:checked={transparent}></label>
+			<ColorPicker bind:hex={$ContextMenuToken.token.ringColor} on:input={handleTokenChange} />
 		</form>
 	</div>
 {/if}

@@ -11,10 +11,10 @@ WebRTC curently not implemented
 ### Features
 ❗❗ Only local at the moment ❗❗
 - [ ] Map
-  - [ ] Drag and drop
+  - [x] Drag and drop
     - [x] Move tokens
     - [x] Upload
-    - [ ] Delete
+    - [x] Delete
   - [x] Move map
   - [x] Zoom
   - [ ] Fog of war
